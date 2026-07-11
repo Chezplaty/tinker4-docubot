@@ -50,6 +50,17 @@ class DocuBot:
     # Index Construction (Phase 1)
     # -----------------------------------------------------------
 
+    def _tokenize(self, text):
+        """
+        Split text into lowercase words, stripping surrounding punctuation.
+        """
+        words = []
+        for word in text.lower().split():
+            word = word.strip(string.punctuation)
+            if word:
+                words.append(word)
+        return words
+
     def build_index(self, documents):
         """
         TODO (Phase 1):
@@ -68,11 +79,7 @@ class DocuBot:
         index = {}
 
         for filename, text in documents:
-            words = text.lower().split()
-            for word in words:
-                word = word.strip(string.punctuation)
-                if not word:
-                    continue
+            for word in self._tokenize(text):
                 if word not in index:
                     index[word] = set()
                 index[word].add(filename)
@@ -94,8 +101,8 @@ class DocuBot:
         - Return the count as the score
         """
 
-        query_words = query.lower().split()
-        text_word_counts = Counter(text.lower().split())
+        query_words = self._tokenize(query)
+        text_word_counts = Counter(self._tokenize(text))
         score = 0
         for word in query_words:
             score += text_word_counts[word]
@@ -109,8 +116,24 @@ class DocuBot:
 
         Return a list of (filename, text) sorted by score descending.
         """
-        results = []
-        # TODO: implement retrieval logic
+        query_words = self._tokenize(query)
+
+        candidate_filenames = set()
+        for word in query_words:
+            candidate_filenames.update(self.index.get(word, ()))
+
+        doc_lookup = dict(self.documents)
+
+        scored = []
+        for filename in candidate_filenames:
+            text = doc_lookup[filename]
+            score = self.score_document(query, text)
+            if score > 0:
+                scored.append((score, filename, text))
+
+        scored.sort(key=lambda item: item[0], reverse=True)
+
+        results = [(filename, text) for _, filename, text in scored]
         return results[:top_k]
 
     # -----------------------------------------------------------
