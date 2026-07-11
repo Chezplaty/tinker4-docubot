@@ -12,6 +12,20 @@ import glob
 import string
 from collections import Counter
 
+STOPWORDS = {
+    "a", "an", "the", "is", "are", "was", "were", "be", "been", "being",
+    "do", "does", "did", "doing", "how", "what", "when", "where", "why",
+    "which", "who", "whom", "this", "that", "these", "those",
+    "i", "me", "my", "we", "our", "you", "your", "he", "she", "it",
+    "they", "them", "their", "of", "in", "on", "at", "to", "for", "with",
+    "about", "as", "by", "from", "up", "down", "out", "over", "under",
+    "again", "then", "once", "here", "there", "all", "any", "both",
+    "each", "few", "more", "most", "other", "some", "such", "no", "nor",
+    "not", "only", "own", "same", "so", "than", "too", "very", "can",
+    "will", "just", "should", "now", "and", "or", "but", "if", "tell",
+    "please",
+}
+
 class DocuBot:
     def __init__(self, docs_folder="docs", llm_client=None):
         """
@@ -57,7 +71,7 @@ class DocuBot:
         words = []
         for word in text.lower().split():
             word = word.strip(string.punctuation)
-            if word:
+            if word and word not in STOPWORDS:
                 words.append(word)
         return words
 
