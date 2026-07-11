@@ -109,6 +109,31 @@ class DocuBot:
 
         return score
 
+    def _extract_snippet(self, query, text, max_lines=5):
+        """
+        Return the lines of text most relevant to query, instead of the
+        whole document. Each line is scored by how many query words it
+        contains, and the top scoring lines are returned in their original
+        order.
+        """
+        query_words = self._tokenize(query)
+
+        scored_lines = []
+        for line_num, line in enumerate(text.split("\n")):
+            line_word_counts = Counter(self._tokenize(line))
+            line_score = sum(line_word_counts[word] for word in query_words)
+            if line_score > 0:
+                scored_lines.append((line_score, line_num, line))
+
+        if not scored_lines:
+            return text.strip()
+
+        scored_lines.sort(key=lambda item: item[0], reverse=True)
+        top_lines = scored_lines[:max_lines]
+        top_lines.sort(key=lambda item: item[1])
+
+        return "\n".join(line for _, _, line in top_lines).strip()
+
     def retrieve(self, query, top_k=3):
         """
         TODO (Phase 1):
@@ -129,11 +154,12 @@ class DocuBot:
             text = doc_lookup[filename]
             score = self.score_document(query, text)
             if score > 0:
-                scored.append((score, filename, text))
+                snippet = self._extract_snippet(query, text)
+                scored.append((score, filename, snippet))
 
         scored.sort(key=lambda item: item[0], reverse=True)
 
-        results = [(filename, text) for _, filename, text in scored]
+        results = [(filename, snippet) for _, filename, snippet in scored]
         return results[:top_k]
 
     # -----------------------------------------------------------
