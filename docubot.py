@@ -10,6 +10,7 @@ Core DocuBot class responsible for:
 import os
 import glob
 import string
+from collections import Counter
 
 class DocuBot:
     def __init__(self, docs_folder="docs", llm_client=None):
@@ -92,8 +93,14 @@ class DocuBot:
         - Count how many appear in the text
         - Return the count as the score
         """
-        # TODO: implement scoring
-        return 0
+
+        query_words = query.lower().split()
+        text_word_counts = Counter(text.lower().split())
+        score = 0
+        for word in query_words:
+            score += text_word_counts[word]
+
+        return score
 
     def retrieve(self, query, top_k=3):
         """
