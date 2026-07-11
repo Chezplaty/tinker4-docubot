@@ -9,6 +9,7 @@ Core DocuBot class responsible for:
 
 import os
 import glob
+import string
 
 class DocuBot:
     def __init__(self, docs_folder="docs", llm_client=None):
@@ -64,7 +65,17 @@ class DocuBot:
         ignore punctuation if needed.
         """
         index = {}
-        # TODO: implement simple indexing
+
+        for filename, text in documents:
+            words = text.lower().split()
+            for word in words:
+                word = word.strip(string.punctuation)
+                if not word:
+                    continue
+                if word not in index:
+                    index[word] = set()
+                index[word].add(filename)
+
         return index
 
     # -----------------------------------------------------------
